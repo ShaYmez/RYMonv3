@@ -1,0 +1,5 @@
+#!/bin/bash
+mv /opt/RYMonv3/log/lastheard.log /opt/RYMonv3/log/lastheard.log.save
+/usr/bin/tail -150 /opt/RYMonv3/log/lastheard.log.save > /opt/RYMonv3/log/lastheard.log
+mv /opt/RYMonv3/log/lastheard.log /opt/RYMonv3/log/lastheard.log.save
+/usr/bin/tail -150 /opt/RYMonv3/log/lastheard.log.save > /opt/RYMonv3/log/lastheard.log
