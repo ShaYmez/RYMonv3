@@ -36,7 +36,7 @@ function conf_parser($conf_file) {
   }
 }
 
-$path2config = "/opt/FDMR-Monitor/fdmr-mon.cfg";
+$path2config = "/opt/FDMR-Monitor/rymon.cfg";
 // Parse config file
 $config = conf_parser($path2config);
 

@@ -3,5 +3,5 @@
 *.json
 *.csv
 *.db
-fdmr-mon.cfg
+rymon.cfg
 venv

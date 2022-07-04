@@ -72,7 +72,7 @@ OPCODE = {
     }
 
 # Make config
-CONF = mk_config("fdmr-mon.cfg")
+CONF = mk_config("rymon.cfg")
 
 # Global Variables:
 CONFIG = {}
@@ -1184,7 +1184,7 @@ def cleaning_loop():
 #######################################################################
 if __name__ == "__main__":
     # Define loggin configuration
-    logger = logging.getLogger("fdmr-mon")
+    logger = logging.getLogger("rymon")
     logger.setLevel(CONF["LOG"]["LOG_LEVEL"])
     # Log handlers
     fh = logging.FileHandler(CONF["LOG"]["P2F_LOG"], encoding="utf8")

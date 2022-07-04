@@ -30,7 +30,7 @@ __license__    = 'GNU GPLv3'
 __maintainer__ = 'Christian Quiroz, OA4DOA'
 __email__      = 'adm@dmr-peru.pe'
 
-logger = logging.getLogger("fdmr-mon")
+logger = logging.getLogger("rymon")
 
 
 # Seconds to a friendly time format
