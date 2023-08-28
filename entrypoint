@@ -1,2 +1,4 @@
+#!/bin/sh
+
 cd /monitor
 python /monitor/monitor.py
