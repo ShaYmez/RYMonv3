@@ -1,7 +1,5 @@
 FROM python:alpine3.17
 
-COPY entrypoint /entrypoint
-
 RUN adduser -D -u 54000 radio
 RUN	apk update && \
 	apk add git gcc musl-dev libffi-dev openssl-dev cargo && \
@@ -15,4 +13,3 @@ RUN	apk update && \
 
 USER radio
 
-ENTRYPOINT [ "/entrypoint" ]
