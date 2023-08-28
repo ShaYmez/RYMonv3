@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo 'Starting RYMonv3...'
+cd /monitor
+python /monitor/monitor.py
