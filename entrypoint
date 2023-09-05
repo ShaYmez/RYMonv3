@@ -1,4 +1,5 @@
 #!/bin/sh
 
+echo 'Starting RYSEN-Monitor...'
 cd /monitor
 python /monitor/monitor.py
