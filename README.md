@@ -1,4 +1,4 @@
-**RYMonv3 is a "dashboard" for RYSEN MASTER+ servers by M0VUB.**
+**RYMonv3 is a "dashboard" for RYSEN MASTER+ & HBlink3 servers by M0VUB.**
 
 ***This version has been forked from FDMR-Monitor by OA4DOA 2022***
 ***This version is also credited to HBMonV2 by SP2ONG 2019 - 2022***
