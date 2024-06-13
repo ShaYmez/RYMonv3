@@ -16,17 +16,17 @@
 #   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 ###############################################################################
 
-FROM python:alpine3.12
+FROM python:alpine3.10
 
 COPY entrypoint /entrypoint
 
 RUN adduser -D -u 54000 radio
 RUN	apk update && \
-	apk add git gcc musl-dev  libffi-dev libretls-dev cargo && \
+	apk add git gcc musl-dev libffi-dev cargo && \
 	git clone https://github.com/shaymez/RYMonv3.git /monitor && \
     cd /monitor && \
 	pip install --no-cache-dir -r requirements.txt && \
-	apk del git gcc musl-dev libffi-dev libretls-dev && \
+	apk del git gcc musl-dev libffi-dev && \
 	chown -R radio /monitor
 
 USER radio
