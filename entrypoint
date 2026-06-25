@@ -1,11 +1,28 @@
 #!/bin/sh
 set -e
 
+RADIO_USER=radio
+RADIO_UID=54000
+RADIO_GID=54000
+
 cd /monitor
 
 if [ ! -f rymon.cfg ]; then
     cp rymon_SAMPLE.cfg rymon.cfg
+    chown "${RADIO_UID}:${RADIO_GID}" rymon.cfg
     echo "WARNING: rymon.cfg missing; copied rymon_SAMPLE.cfg — set FDMR_IP/FDMR_PORT to your RYSEN report address." >&2
 fi
 
-exec python monitor.py
+for dir in log data; do
+    if [ -d "/monitor/$dir" ]; then
+        chown -R "${RADIO_UID}:${RADIO_GID}" "/monitor/$dir"
+    fi
+done
+
+for f in mon.db mon.db-journal mon.db-wal mon.db-shm; do
+    if [ -e "/monitor/$f" ]; then
+        chown "${RADIO_UID}:${RADIO_GID}" "/monitor/$f"
+    fi
+done
+
+exec gosu "${RADIO_USER}" python monitor.py

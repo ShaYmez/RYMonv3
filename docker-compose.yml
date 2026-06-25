@@ -8,7 +8,10 @@ services:
       - "9000:9000"
     volumes:
       - ./rymon.cfg:/monitor/rymon.cfg:ro
+      # Bind mount: entrypoint chowns to 54000:54000 at start, or on host: chown -R 54000:54000 log
       - ./log:/monitor/log
+      # Named volume (no host permission setup):
+      # - rymon_log:/monitor/log
       # Optional local alias files:
       # - ./data/local_peer_ids.json:/monitor/data/local_peer_ids.json:ro
     networks:
@@ -21,3 +24,6 @@ networks:
     ipam:
       config:
         - subnet: 172.16.238.0/24
+
+# volumes:
+#   rymon_log:

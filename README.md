@@ -63,6 +63,15 @@ FDMR_PORT = 4321
 
 Volumes: `./rymon.cfg`, `./log`, and optional alias JSON under `./data/`.
 
+The container process runs as UID/GID **54000** (`radio`). Bind-mounted `log/` (and `data/` if mounted) are owned by root on the host by default; the entrypoint fixes that at startup. Alternatively, on the host:
+
+```bash
+mkdir -p log
+sudo chown -R 54000:54000 log
+```
+
+Or use a Docker named volume for logs (see commented `rymon_log` in `docker-compose.yml`) so no host `chown` is needed.
+
 ## systemd (optional)
 
 ```bash

@@ -5,7 +5,7 @@ WORKDIR /monitor
 COPY requirements.txt .
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends gcc libffi-dev libssl-dev \
+    && apt-get install -y --no-install-recommends gcc libffi-dev libssl-dev gosu \
     && pip install --no-cache-dir -r requirements.txt \
     && apt-get purge -y --auto-remove gcc \
     && rm -rf /var/lib/apt/lists/*
@@ -19,8 +19,6 @@ RUN sed -i 's/\r$//' /entrypoint \
     && mkdir -p log \
     && useradd -r -u 54000 -d /monitor -s /usr/sbin/nologin radio \
     && chown -R radio:radio /monitor
-
-USER radio
 
 EXPOSE 9000
 
