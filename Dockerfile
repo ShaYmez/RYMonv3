@@ -14,7 +14,8 @@ COPY monitor.py config.py mon_db.py rymon_SAMPLE.cfg ./
 COPY templates/ templates/
 COPY data/ data/
 COPY entrypoint /entrypoint
-RUN chmod +x /entrypoint \
+RUN sed -i 's/\r$//' /entrypoint \
+    && chmod +x /entrypoint \
     && mkdir -p log \
     && useradd -r -u 54000 -d /monitor -s /usr/sbin/nologin radio \
     && chown -R radio:radio /monitor
