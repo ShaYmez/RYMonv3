@@ -1,0 +1,14 @@
+[Unit]
+Description=RYMonv3 dashboard backend
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/RYMonv3
+ExecStart=/opt/RYMonv3/run.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

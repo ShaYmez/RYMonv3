@@ -1,5 +1,11 @@
 #!/bin/sh
+set -e
 
-echo 'Starting RYSEN-Monitor...'
 cd /monitor
-python /monitor/monitor.py
+
+if [ ! -f rymon.cfg ]; then
+    cp rymon_SAMPLE.cfg rymon.cfg
+    echo "WARNING: rymon.cfg missing; copied rymon_SAMPLE.cfg — set FDMR_IP/FDMR_PORT to your RYSEN report address." >&2
+fi
+
+exec python monitor.py

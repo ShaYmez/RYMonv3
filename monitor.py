@@ -74,6 +74,8 @@ OPCODE = {
 # Make config
 CONF = mk_config("rymon.cfg")
 
+logger = logging.getLogger("rymon")
+
 # Global Variables:
 CONFIG = {}
 # Number of rows showed on the lastheard log page
@@ -383,6 +385,13 @@ def cleanTE():
                 del CTABLE["OPENBRIDGES"][system]["STREAMS"][streamId]
 
 
+ROUTING_MASTER_MODES = ("MASTER", "IPSC")
+
+
+def is_routing_master(mode):
+    return mode in ROUTING_MASTER_MODES
+
+
 def add_hb_peer(_peer_conf, _ctable_loc, _peer):
     _ctable_loc[int_id(_peer)] = {}
     _ctable_peer = _ctable_loc[int_id(_peer)]
@@ -451,6 +460,10 @@ def add_hb_peer(_peer_conf, _ctable_loc, _peer):
     else:
         _ctable_peer["CALLSIGN"] = _peer_conf["CALLSIGN"]
 
+    if _peer_conf.get("PROTOCOL") == "IPSC":
+        _ctable_peer["CALLSIGN"] = f"{_ctable_peer['CALLSIGN']} (IPSC)"
+        logger.info(f"IPSC peer registered: {_ctable_peer['CALLSIGN']} (Id: {int_id(_peer)})")
+
     if str(type(_peer_conf["COLORCODE"])).find("bytes") != -1:
         _ctable_peer["COLORCODE"] = _peer_conf["COLORCODE"].decode("utf-8").strip()
     else:
@@ -480,7 +493,7 @@ def build_hblink_table(_config, _stats_table):
     for _hbp, _hbp_data in list(_config.items()):
         if _hbp_data["ENABLED"] == True:
             # Process Master Systems
-            if _hbp_data["MODE"] == "MASTER":
+            if is_routing_master(_hbp_data["MODE"]):
                 _stats_table["MASTERS"][_hbp] = {}
                 if _hbp_data["REPEAT"]:
                     _stats_table["MASTERS"][_hbp]["REPEAT"] = "repeat"
@@ -572,7 +585,7 @@ def build_hblink_table(_config, _stats_table):
 def update_hblink_table(_config, _stats_table):
     # Is there a system in HBlink's config monitor doesn't know about?
     for _hbp in _config:
-        if _config[_hbp]["MODE"] == "MASTER":
+        if is_routing_master(_config[_hbp]["MODE"]):
             for _peer in _config[_hbp]["PEERS"]:
                 if int_id(_peer) not in _stats_table["MASTERS"][_hbp]["PEERS"] and _config[_hbp]["PEERS"][_peer]["CONNECTION"] == "YES":
                     logger.info(f"Adding peer to CTABLE that has registerred: {int_id(_peer)}")
@@ -581,7 +594,7 @@ def update_hblink_table(_config, _stats_table):
     # Is there a system in monitor that's been removed from HBlink's config?
     for _hbp in _stats_table["MASTERS"]:
         remove_list = []
-        if _config[_hbp]["MODE"] == "MASTER":
+        if is_routing_master(_config[_hbp]["MODE"]):
             for _peer in _stats_table["MASTERS"][_hbp]["PEERS"]:
                 if bytes_4(_peer) not in _config[_hbp]["PEERS"]:
                     remove_list.append(_peer)

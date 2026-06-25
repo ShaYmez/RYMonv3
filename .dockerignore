@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+log/*.log
+rymon.cfg
+mon.db
+mon.db-journal
+.git/
+.github/
+html/
+sysinfo/
+utils/
+tests/
+*.md
+.gitignore

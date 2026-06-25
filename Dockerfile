@@ -1,36 +1,26 @@
-###############################################################################
-#   Copyright (C) 2020 Shane aka, ShaYmez <support@gb7nr.co.uk>  
-#
-#   This program is free software; you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation; either version 3 of the License, or
-#   (at your option) any later version.
-#
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-#
-#   You should have received a copy of the GNU General Public License
-#   along with this program; if not, write to the Free Software Foundation,
-#   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
-###############################################################################
+FROM python:3.11-slim-bookworm
 
-FROM python:alpine3.17
+WORKDIR /monitor
 
+COPY requirements.txt .
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc libffi-dev libssl-dev \
+    && pip install --no-cache-dir -r requirements.txt \
+    && apt-get purge -y --auto-remove gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY monitor.py config.py mon_db.py rymon_SAMPLE.cfg ./
+COPY templates/ templates/
+COPY data/ data/
 COPY entrypoint /entrypoint
-
-RUN adduser -D -u 54000 radio
-RUN	apk update && \
-	apk add git gcc musl-dev libffi-dev openssl-dev cargo && \
-    pip install --upgrade pip && \
-    pip cache purge && \
-	git clone https://github.com/shaymez/RYMonv3.git /monitor && \
-    cd /monitor && \
-	pip install --no-cache-dir -r requirements.txt && \
-	apk del git gcc musl-dev libffi-dev openssl-dev && \
-	chown -R radio /monitor
+RUN chmod +x /entrypoint \
+    && mkdir -p log \
+    && useradd -r -u 54000 -d /monitor -s /usr/sbin/nologin radio \
+    && chown -R radio:radio /monitor
 
 USER radio
 
-ENTRYPOINT [ "/entrypoint" ]
+EXPOSE 9000
+
+ENTRYPOINT ["/entrypoint"]

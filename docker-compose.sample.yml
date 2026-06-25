@@ -1,0 +1,39 @@
+# Example stack: RYSEN + RYMon on a shared bridge network.
+# Copy rymon_SAMPLE.cfg to rymon.cfg and set:
+#   FDMR_IP = 172.16.238.10
+#   FDMR_PORT = 4321
+# (RYSEN container IP — not 127.0.0.1 from inside the rymon container.)
+
+services:
+  rysen:
+    image: shaymez/rysen:latest
+    container_name: rysen
+    restart: unless-stopped
+    networks:
+      rymon_net:
+        ipv4_address: 172.16.238.10
+    volumes:
+      - ./rysenv3.cfg:/opt/rysenv3/rysenv3.cfg:ro
+
+  rymon:
+    build: .
+    image: shaymez/rymonv3:latest
+    container_name: rymon
+    restart: unless-stopped
+    depends_on:
+      - rysen
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./rymon.cfg:/monitor/rymon.cfg:ro
+      - ./log:/monitor/log
+    networks:
+      rymon_net:
+        ipv4_address: 172.16.238.12
+
+networks:
+  rymon_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.238.0/24

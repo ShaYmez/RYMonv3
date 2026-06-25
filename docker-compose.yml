@@ -1,0 +1,23 @@
+services:
+  rymon:
+    build: .
+    image: shaymez/rymonv3:latest
+    container_name: rymon
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./rymon.cfg:/monitor/rymon.cfg:ro
+      - ./log:/monitor/log
+      # Optional local alias files:
+      # - ./data/local_peer_ids.json:/monitor/data/local_peer_ids.json:ro
+    networks:
+      rymon_net:
+        ipv4_address: 172.16.238.12
+
+networks:
+  rymon_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.238.0/24
