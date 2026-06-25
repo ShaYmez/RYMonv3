@@ -209,7 +209,7 @@ def update_table(_path, _file, _url, _stale, _table):
         global not_in_db
         count = yield db_conn.table_count(_table)
         result = yield deferToThread(try_download, _path, _file, _url, _stale)
-        if "successfully" in result or count < 1:
+        if "successfully" in result or count is None or count < 1:
             fill_table(_path, _file, _table)
             not_in_db = []
             lcl_lstmod[_table] = None
@@ -741,7 +741,7 @@ def push_main(lastheard=None, target=None):
 
 
 def build_stats():
-    global build_time
+    global build_time, _lastheard_refresh
     if time() - build_time >= 1 or not build_time:
         # Create a list with active groups
         active_groups = [group for group, value in GROUPS.items() if value]
@@ -1242,6 +1242,15 @@ def files_update():
         update_table(CONF["FILES"]["PATH"], file, url, CONF["FILES"]["RELOAD_TIME"], tbl)
 
 
+@inlineCallbacks
+def init_db():
+    yield db_conn.create_tables()
+    update_local()
+    for file, url, tbl in UPDT_FILES:
+        yield update_table(CONF["FILES"]["PATH"], file, url, CONF["FILES"]["RELOAD_TIME"], tbl)
+    yield count_db_entries()
+
+
 def cleaning_loop():
     if CONF["GLOBAL"]["TGC_INC"]:
         clean_tgcount()
@@ -1314,10 +1323,8 @@ if __name__ == "__main__":
     cdb_loop = task.LoopingCall(cleaning_loop)
     cdb_loop.start(900, now=False).addErrback(error_hdl)
 
-    # Update local files at start
-    reactor.callLater(3, update_local)
-    # Show number of entries in DB tables
-    reactor.callLater(5, count_db_entries)
+    # Initialise SQLite and alias tables before serving traffic
+    init_db().addErrback(error_hdl)
 
     # Connect to HBlink
     reactor.connectTCP(

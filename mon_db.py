@@ -148,6 +148,7 @@ class MoniDB:
 
         except Exception as err:
             logger.error(f"table_count: {err}.")
+            returnValue(0)
 
     @inlineCallbacks
     def ins_lstheard(self, qso_time, qso_type, system, tg_num, dmr_id):
@@ -216,6 +217,7 @@ class MoniDB:
             
         except Exception as err:
             logger.error(f"slct_2render: {err}.")
+            returnValue([])
 
     @inlineCallbacks
     def clean_table(self, _table, _row_num):
@@ -273,6 +275,7 @@ class MoniDB:
 
         except Exception as err:
             logger.error(f"slct_tgcount: {err}.")
+            returnValue([])
 
     @inlineCallbacks
     def clean_tgcount(self):
