@@ -18,15 +18,21 @@ Some of the changes in RYMonv3:
 - Static and single TG's page added.
 - Data QSO's now are showed in the dashboard.
 
-RYMonv2 has been tested on Debian v10 and v11
+RYMonv2 has been tested on Debian 11, 12 & 13 
 
 This version of RYMonv2 requires a web server like apache2, lighttpd and 
 php 7.x running on the server.
 
 *** Installation is provided in the RYSEN DMR Master+ one-shot installer***
 
-- If installing stand-alone then follow SP2ONG installation guide. Edit installation to suit installation of RYMonv3 
+## Stand-alone install (Debian/Ubuntu)
 
+```bash
+git clone https://github.com/ShaYmez/RYMonv3.git
+cd RYMonv3
+./install.sh
+nano rymon.cfg    # [FDMR CONNECTION] FDMR_IP / FDMR_PORT → RYSEN report (default 4321)
+./run.sh
 
 ---
 

@@ -1,7 +1,9 @@
 *.pyc
-*.log
 *.json
 *.csv
 *.db
 rymon.cfg
-venv
+.venv/
+log/*.log
+mon.db-journal
+__pycache__/

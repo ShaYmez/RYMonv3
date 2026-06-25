@@ -1,17 +1,14 @@
 [Unit]
-Description=RYSEN Monitor V3
-# To make the network-online.target available
-# systemctl enable systemd-networkd-wait-online.service
-
-After=network-online.target syslog.target
-Wants=network-online.target
+Description=RYMonv3 dashboard backend
+After=network.target
 
 [Service]
-StandardOutput=null
+Type=simple
+User=root
 WorkingDirectory=/opt/RYMonv3
-RestartSec=3
-ExecStart=python3 /opt/RYMonv3/monitor.py
-Restart=on-abort
+ExecStart=/opt/RYMonv3/.venv/bin/python /opt/RYMonv3/monitor.py
+Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
