@@ -83,7 +83,7 @@ sudo systemctl enable --now rymon
 
 ## IPSC support
 
-When RYSEN sends IPSC repeater systems in `CONFIG['SYSTEMS']['IPSC-N']` with `MODE: IPSC` and HBP-shaped peer fields, RYMon treats them like routing masters. Peers show on **Linked Systems** (`lnksys`), and live TS1/TS2 activity works via `CTABLE['MASTERS']`. IPSC peers are labelled `(IPSC)` in the callsign column.
+When RYSEN sends IPSC repeater systems in `CONFIG['SYSTEMS']['IPSC-N']` with `MODE: IPSC` and HBP-shaped peer fields, RYMon treats them like routing masters. Peers show on **Linked Systems** (`lnksys`) as `GB7NR (Id: 235287)` with Motorola software/hardware from `SOFTWARE_ID` / `PACKAGE_ID`, and live TS1/TS2 activity works via `CTABLE['MASTERS']`.
 
 Run the smoke test:
 

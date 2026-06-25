@@ -39,15 +39,17 @@
         {% if _table['OPENBRIDGES'][_openbridge]['STREAMS']|length >0 %}
         {% for entry in _table['OPENBRIDGES'][_openbridge]['STREAMS'] if _table['OPENBRIDGES'][_openbridge]['STREAMS'][entry][0]=='RX' %}
           {% set rx.value=1 %}
-          {% endfor %}
-          {% if rx.value == 1 %}
-          {% for entry in _table['OPENBRIDGES'][_openbridge]['STREAMS']  if _table['OPENBRIDGES'][_openbridge]['STREAMS'][entry][0] == 'RX' %}&nbsp;[<span class="txt-008000">O</span>:&nbsp;<span class="txt-0065ff">{{ _table['OPENBRIDGES'][_openbridge]['STREAMS'][entry][1]}}</span>&nbsp;<span class="txt-red">>></span>&nbsp;<span class="txt-b5651d">TG&nbsp;{{ _table['OPENBRIDGES'][_openbridge]['STREAMS'][entry][2]}}</span>]&nbsp; {% endfor %}
+        {% endfor %}
+        {% if rx.value == 1 %}
+        {% for entry in _table['OPENBRIDGES'][_openbridge]['STREAMS'] if _table['OPENBRIDGES'][_openbridge]['STREAMS'][entry][0] == 'RX' %}
+        &nbsp;[<span class="txt-008000">O</span>:&nbsp;<span class="txt-0065ff">{{ _table['OPENBRIDGES'][_openbridge]['STREAMS'][entry][1]}}</span>&nbsp;<span class="txt-red">>></span>&nbsp;<span class="txt-b5651d">TG&nbsp;{{ _table['OPENBRIDGES'][_openbridge]['STREAMS'][entry][2]}}</span>]&nbsp;
+        {% endfor %}
         {% endif %}
-    {% endif %}
-    {% endfor %}
+        {% endif %}
+        {% endfor %}
+        {% endif %}
       </td>
     </tr>
-{% endif %}
   </table>
 {% else %}
   <table class="w4data"><tr><td><b>Waiting for data from the Server...</b></td></tr></table>
@@ -101,15 +103,22 @@
           <div class="tooltip">
             <a target="_blank" href="http://www.qrz.com/db/{{_cdata['CALLSIGN']}}"><b>{{_cdata['CALLSIGN']}}</b></a>
             <div class="tooltiptext c2s-pos1">
-              <b>DMR ID</b>: <span class="txt-yellow"><b>{{ _client }}</b></span><br>
-              {% if _cdata['RX_FREQ'] == 'N/A' and _cdata['TX_FREQ'] == 'N/A' %}
+              <b>DMR ID</b>: <span class="txt-yellow"><b>{{ _cdata['RADIO_ID'] if 'RADIO_ID' in _cdata else _client }}</b></span><br>
+              {% if _cdata.get('PROTOCOL') == 'IPSC' %}
+              <b>Type: <span class="txt-yellow">IPSC Repeater</span></b> ({{ _cdata['SLOTS'] }})<br>
+              <b>Hardware</b>: {{ _cdata['PACKAGE_ID'] }}<br>
+              <b>Soft_Ver</b>: {{ _cdata['SOFTWARE_ID'] }}<br>
+              {% if _cdata['DESCRIPTION'] and _cdata['DESCRIPTION'] != '—' %}<b>Mode</b>: {{ _cdata['DESCRIPTION'] }}<br>{% endif %}
+              {% elif _cdata['RX_FREQ'] == 'N/A' and _cdata['TX_FREQ'] == 'N/A' %}
               <b>Type: <span class="txt-yellow">IP Network</span></b><br>
               {% else %} 
               <b>Type: <span class="txt-yellow">Radio</span></b>&nbsp;({{ _cdata['SLOTS'] }})<br>
               {% endif %}
+              {% if _cdata.get('PROTOCOL') != 'IPSC' %}
               <b>Hardware</b>: {{_cdata['PACKAGE_ID'] }}<br>
               <b>Soft_Ver</b>: {{_cdata['SOFTWARE_ID'] }}<br>
-              <b>Info</b>: {{_cdata['LOCATION']}}<br>
+              {% endif %}
+              {% if _cdata['LOCATION'] and _cdata['LOCATION'] != '—' %}<b>Info</b>: {{_cdata['LOCATION']}}<br>{% endif %}
               <b>Master</b>: <span class="txt-yellow">{{_master}}</span><br>
               <b>Time connected</b>: <span class="txt-yellow">{{ _cdata['CONNECTED'] }}</span>
             </div>

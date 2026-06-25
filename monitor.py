@@ -191,7 +191,12 @@ def fill_table(_path, _file, _table, wipe_tbl=True):
                         pass
 
         if temp_lst:
+            if wipe_tbl and _table == "peer_ids":
+                peer_ids.clear()
             db_conn.populate_tbl(_table, temp_lst, wipe_tbl, _file)
+            if _table == "peer_ids":
+                for peer_id, callsign in temp_lst:
+                    peer_ids[peer_id] = {"CALLSIGN": callsign}
 
     except Exception as err:
         logger.error(f"fill_table error: {err}, {type(err)}")
@@ -392,6 +397,36 @@ def is_routing_master(mode):
     return mode in ROUTING_MASTER_MODES
 
 
+def _hb_field_str(value):
+    if isinstance(value, bytes):
+        return value.decode("utf-8").rstrip("\x00").rstrip()
+    if value is None:
+        return ""
+    return str(value).rstrip()
+
+
+def _hb_radio_id(_peer_conf, _peer):
+    if "RADIO_ID" not in _peer_conf:
+        return str(int_id(_peer))
+    rid = _peer_conf["RADIO_ID"]
+    if isinstance(rid, bytes):
+        text = rid.decode("utf-8").rstrip("\x00").rstrip()
+        return text if text else str(int_id(_peer))
+    text = str(rid).rstrip()
+    return text if text else str(int_id(_peer))
+
+
+def _resolve_peer_callsign(_peer_conf, _peer, radio_id):
+    callsign = _hb_field_str(_peer_conf.get("CALLSIGN", ""))
+    peer_key = str(int_id(_peer))
+    if callsign and callsign not in (radio_id, peer_key):
+        return callsign
+    alias = alias_call(int(radio_id), peer_ids)
+    if str(alias) not in (str(radio_id), peer_key):
+        return str(alias)
+    return callsign or radio_id
+
+
 def add_hb_peer(_peer_conf, _ctable_loc, _peer):
     _ctable_loc[int_id(_peer)] = {}
     _ctable_peer = _ctable_loc[int_id(_peer)]
@@ -430,44 +465,28 @@ def add_hb_peer(_peer_conf, _ctable_loc, _peer):
         _ctable_peer["SLOTS"] = "Simplex"
 
     # Simple translation items
-    if str(type(_peer_conf["PACKAGE_ID"])).find("bytes") != -1:
-        _ctable_peer["PACKAGE_ID"] = _peer_conf["PACKAGE_ID"].decode("utf-8")
-    else:
-        _ctable_peer["PACKAGE_ID"] = _peer_conf["PACKAGE_ID"]
+    _ctable_peer["PACKAGE_ID"] = _hb_field_str(_peer_conf.get("PACKAGE_ID", ""))
+    _ctable_peer["SOFTWARE_ID"] = _hb_field_str(_peer_conf.get("SOFTWARE_ID", ""))
+    _ctable_peer["LOCATION"] = _hb_field_str(_peer_conf.get("LOCATION", ""))
+    _ctable_peer["DESCRIPTION"] = _hb_field_str(_peer_conf.get("DESCRIPTION", ""))
+    _ctable_peer["URL"] = _hb_field_str(_peer_conf.get("URL", ""))
 
-    if str(type(_peer_conf["SOFTWARE_ID"])).find("bytes") != -1:
-        _ctable_peer["SOFTWARE_ID"] = _peer_conf["SOFTWARE_ID"].decode("utf-8")
+    _is_ipsc = _peer_conf.get("PROTOCOL") == "IPSC"
+    _ctable_peer["RADIO_ID"] = _hb_radio_id(_peer_conf, _peer)
+    if _is_ipsc:
+        _ctable_peer["PROTOCOL"] = "IPSC"
+        _ctable_peer["CALLSIGN"] = _resolve_peer_callsign(
+            _peer_conf, _peer, _ctable_peer["RADIO_ID"])
+        for field in ("SOFTWARE_ID", "PACKAGE_ID", "LOCATION"):
+            if not _ctable_peer[field]:
+                _ctable_peer[field] = "—"
+        logger.info(
+            f"IPSC peer registered: {_ctable_peer['CALLSIGN']} "
+            f"(Id: {_ctable_peer['RADIO_ID']})")
     else:
-        _ctable_peer["SOFTWARE_ID"] = _peer_conf["SOFTWARE_ID"]
+        _ctable_peer["CALLSIGN"] = _hb_field_str(_peer_conf.get("CALLSIGN", ""))
 
-    if str(type(_peer_conf["LOCATION"])).find("bytes") != -1:
-        _ctable_peer["LOCATION"] = _peer_conf["LOCATION"].decode("utf-8").strip()
-    else:
-        _ctable_peer["LOCATION"] = _peer_conf["LOCATION"]
-
-    if str(type(_peer_conf["DESCRIPTION"])).find("bytes") != -1:
-        _ctable_peer["DESCRIPTION"] = _peer_conf["DESCRIPTION"].decode("utf-8").strip()
-    else:
-        _ctable_peer["DESCRIPTION"] = _peer_conf["DESCRIPTION"]
-
-    if str(type(_peer_conf["URL"])).find("bytes") != -1:
-        _ctable_peer["URL"] = _peer_conf["URL"].decode("utf-8").strip()
-    else:
-        _ctable_peer["URL"] = _peer_conf["URL"]
-
-    if str(type(_peer_conf["CALLSIGN"])).find("bytes") != -1:
-        _ctable_peer["CALLSIGN"] = _peer_conf["CALLSIGN"].decode("utf-8").strip()
-    else:
-        _ctable_peer["CALLSIGN"] = _peer_conf["CALLSIGN"]
-
-    if _peer_conf.get("PROTOCOL") == "IPSC":
-        _ctable_peer["CALLSIGN"] = f"{_ctable_peer['CALLSIGN']} (IPSC)"
-        logger.info(f"IPSC peer registered: {_ctable_peer['CALLSIGN']} (Id: {int_id(_peer)})")
-
-    if str(type(_peer_conf["COLORCODE"])).find("bytes") != -1:
-        _ctable_peer["COLORCODE"] = _peer_conf["COLORCODE"].decode("utf-8").strip()
-    else:
-        _ctable_peer["COLORCODE"] = _peer_conf["COLORCODE"]
+    _ctable_peer["COLORCODE"] = _hb_field_str(_peer_conf.get("COLORCODE", ""))
 
     _ctable_peer["CONNECTION"] = _peer_conf["CONNECTION"]
     _ctable_peer["CONNECTED"] = time_str(_peer_conf["CONNECTED"], "since")
@@ -581,27 +600,44 @@ def build_hblink_table(_config, _stats_table):
                 _stats_table["OPENBRIDGES"][_hbp]["TARGET_PORT"] = _hbp_data["TARGET_PORT"]
                 _stats_table["OPENBRIDGES"][_hbp]["STREAMS"] = {}
 
+    build_stats()
+
+
+def _routing_master_entry(_hbp_data):
+    return {
+        "REPEAT": "repeat" if _hbp_data["REPEAT"] else "isolate",
+        "PEERS": {},
+    }
+
 
 def update_hblink_table(_config, _stats_table):
-    # Is there a system in HBlink's config monitor doesn't know about?
-    for _hbp in _config:
-        if is_routing_master(_config[_hbp]["MODE"]):
-            for _peer in _config[_hbp]["PEERS"]:
-                if int_id(_peer) not in _stats_table["MASTERS"][_hbp]["PEERS"] and _config[_hbp]["PEERS"][_peer]["CONNECTION"] == "YES":
+    # Add routing master systems that appeared in config since last build
+    for _hbp, _hbp_data in _config.items():
+        if not _hbp_data.get("ENABLED"):
+            continue
+        if is_routing_master(_hbp_data["MODE"]):
+            if _hbp not in _stats_table["MASTERS"]:
+                _stats_table["MASTERS"][_hbp] = _routing_master_entry(_hbp_data)
+            for _peer in _hbp_data["PEERS"]:
+                if (int_id(_peer) not in _stats_table["MASTERS"][_hbp]["PEERS"]
+                        and _hbp_data["PEERS"][_peer]["CONNECTION"] == "YES"):
                     logger.info(f"Adding peer to CTABLE that has registerred: {int_id(_peer)}")
-                    add_hb_peer(_config[_hbp]["PEERS"][_peer], _stats_table["MASTERS"][_hbp]["PEERS"], _peer)
+                    add_hb_peer(_hbp_data["PEERS"][_peer], _stats_table["MASTERS"][_hbp]["PEERS"], _peer)
 
     # Is there a system in monitor that's been removed from HBlink's config?
-    for _hbp in _stats_table["MASTERS"]:
+    for _hbp in list(_stats_table["MASTERS"]):
+        if _hbp not in _config or not is_routing_master(_config[_hbp]["MODE"]):
+            logger.info(f"Deleting stats master not in hblink config: {_hbp}")
+            del _stats_table["MASTERS"][_hbp]
+            continue
         remove_list = []
-        if is_routing_master(_config[_hbp]["MODE"]):
-            for _peer in _stats_table["MASTERS"][_hbp]["PEERS"]:
-                if bytes_4(_peer) not in _config[_hbp]["PEERS"]:
-                    remove_list.append(_peer)
+        for _peer in _stats_table["MASTERS"][_hbp]["PEERS"]:
+            if bytes_4(_peer) not in _config[_hbp]["PEERS"]:
+                remove_list.append(_peer)
 
-            for _peer in remove_list:
-                logger.info(f"Deleting stats peer not in hblink config: {_peer}")
-                del (_stats_table["MASTERS"][_hbp]["PEERS"][_peer])
+        for _peer in remove_list:
+            logger.info(f"Deleting stats peer not in hblink config: {_peer}")
+            del _stats_table["MASTERS"][_hbp]["PEERS"][_peer]
     # Update connection time
     for _hbp in _stats_table["MASTERS"]:
         for _peer in _stats_table["MASTERS"][_hbp]["PEERS"]:
@@ -690,6 +726,20 @@ def build_bridge_table(_bridges):
 #          THIS CURRENTLY IS A TIMED CALL
 #
 build_time = 0
+_lastheard_cache = []
+_lastheard_refresh = 0
+
+
+def push_main(lastheard=None, target=None):
+    """Push main dashboard table; empty lastheard is valid."""
+    rows = _lastheard_cache if lastheard is None else (lastheard or [])
+    msg = "i" + itemplate.render(_table=CTABLE, lastheard=rows)
+    if target is not None:
+        target.sendMessage(msg.encode("utf-8"))
+    elif GROUPS["main"]:
+        dashboard_server.broadcast(msg, "main")
+
+
 def build_stats():
     global build_time
     if time() - build_time >= 1 or not build_time:
@@ -697,7 +747,12 @@ def build_stats():
         active_groups = [group for group, value in GROUPS.items() if value]
         if CONFIG:
             if "main" in active_groups:
-                render_fromdb("last_heard", CONF["GLOBAL"]["LH_ROWS"])
+                push_main()
+                if CONF["GLOBAL"]["LH_INC"]:
+                    now = time()
+                    if now - _lastheard_refresh >= CONF["WS"]["FREQ"] or not _lastheard_refresh:
+                        _lastheard_refresh = now
+                        render_fromdb("last_heard", CONF["GLOBAL"]["LH_ROWS"])
             if "lnksys" in active_groups:
                 lnksys = "c" + ctemplate.render(_table=CTABLE, emaster=CONF["GLOBAL"]["EMPTY_MASTERS"])
                 dashboard_server.broadcast(lnksys, "lnksys")
@@ -719,18 +774,20 @@ def build_stats():
 
 @inlineCallbacks
 def render_fromdb(_tbl, _row_num, _snd=False):
+    global _lastheard_cache
     try:
+        result = None
         if _tbl in ("last_heard", "lstheard_log"):
             result = yield db_conn.slct_2render(_tbl, _row_num)
         elif _tbl == "tgcount":
             result = yield db_conn.slct_tgcount(_row_num)
-        if result:
-            if not _snd:
-                if _tbl == "last_heard":
-                    main = "i" + itemplate.render(_table=CTABLE, lastheard=result)
-                    dashboard_server.broadcast(main, "main")
 
-                elif _tbl == "lstheard_log":
+        if _tbl == "last_heard":
+            _lastheard_cache = result or []
+            push_main(_lastheard_cache, _snd or None)
+        elif result:
+            if not _snd:
+                if _tbl == "lstheard_log":
                     lsth_log = "h" + htemplate.render(_table=result)
                     dashboard_server.broadcast(lsth_log, "lsthrd_log")
 
@@ -739,11 +796,7 @@ def render_fromdb(_tbl, _row_num, _snd=False):
                     dashboard_server.broadcast(tgcount, "tgcount")
 
             else:
-                if _tbl == "last_heard":
-                    _snd.sendMessage(
-                        ("i" + itemplate.render(_table=CTABLE, lastheard=result)).encode("utf-8"))
-
-                elif _tbl == "lstheard_log":
+                if _tbl == "lstheard_log":
                     _snd.sendMessage(("h" + htemplate.render(_table=result)).encode("utf-8"))
 
                 elif _tbl == "tgcount":
@@ -922,6 +975,7 @@ def process_message(_bmessage):
             update_hblink_table(CONFIG, CTABLE)
         else:
             build_hblink_table(CONFIG, CTABLE)
+        build_tgstats()
 
     elif opcode == OPCODE["BRIDGE_SND"]:
         logger.debug("got BRIDGE_SND opcode")
@@ -1089,7 +1143,7 @@ class dashboard(WebSocketServerProtocol):
             logger.info(f"Binary message received: {len(payload)} bytes")
         else:
             msg = payload.decode("utf-8").split(",")
-            logger.info(f"Text message received: {payload}")
+            logger.debug(f"Text message received: {payload}")
             if msg[0] != "conf":
                 return None
             for group in msg[1:]:
@@ -1110,7 +1164,10 @@ class dashboard(WebSocketServerProtocol):
                         ("o" + otemplate.render(
                             _table=CTABLE,dbridges=CONF["GLOBAL"]["BRDG_INC"])).encode("utf-8"))
                 elif group == "main":
-                    render_fromdb("last_heard", CONF["GLOBAL"]["LH_ROWS"], self)
+                    if CONF["GLOBAL"]["LH_INC"]:
+                        render_fromdb("last_heard", CONF["GLOBAL"]["LH_ROWS"], self)
+                    else:
+                        push_main([], self)
                 elif group == "statictg":
                     self.sendMessage(
                         ("s" + stemplate.render(

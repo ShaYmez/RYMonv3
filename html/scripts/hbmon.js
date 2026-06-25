@@ -41,21 +41,21 @@ window.onload = function() {
       if (ellog != null) {
         log("Connection closed (wasClean = " + e.wasClean + ", code = " + e.code + ", reason = '" + e.reason + "')");}
       sock = null;
-      for (i = 0; i < conf_groups.length; i++) {
+      for (var i = 0; i < conf_groups.length; i++) {
         var group = conf_groups[i];
-        if (group == 'bridge') {
+        if (group == 'bridge' && bridge_tbl) {
           bridge_tbl.innerHTML = "";
-        } else if (group == 'main') {
+        } else if (group == 'main' && main_tbl) {
           main_tbl.innerHTML = "";
-        } else if (group == 'lnksys') {
+        } else if (group == 'lnksys' && lnksys_tbl) {
           lnksys_tbl.innerHTML = "";
-        } else if (group == 'opb') {
+        } else if (group == 'opb' && opb_tbl) {
           opb_tbl.innerHTML = "";
-        } else if (group == 'statictg') {
+        } else if (group == 'statictg' && statictg_tbl) {
           statictg_tbl.innerHTML = "";
-        } else if (group == 'tgcount') {
+        } else if (group == 'tgcount' && tgcount_tbl) {
           tgcount_tbl.innerHTML = "";
-        } else if (group == 'lsthrd_log') {
+        } else if (group == 'lsthrd_log' && lsthrd_log_tbl) {
           lsthrd_log_tbl.innerHTML = "";
         }
       }
@@ -69,35 +69,35 @@ window.onload = function() {
       } else if (opcode == "t") {
         Tmsg(message)
       } else if (opcode == "c") {
-        Cmsg(message);                   
+        Cmsg(message);
       } else if (opcode == "i") {
-        Imsg(message);         
+        Imsg(message);
       } else if (opcode == "o") {
-        Omsg(message);         
+        Omsg(message);
       } else if (opcode == "s") {
         Smsg(message);
       } else if (opcode == 'h') {
         Hmsg(message);
       } else if (opcode == "l") {
-        if (ellog != null) { 
+        if (ellog != null) {
           log(message);}
       } else if (opcode == "q") {
         log(message);
-        for (i = 0; i < conf_groups.length; i++) {
+        for (var i = 0; i < conf_groups.length; i++) {
           var group = conf_groups[i];
-          if (group == "bridge") {
+          if (group == "bridge" && bridge_tbl) {
             bridge_tbl.innerHTML = "";
-          } else if (group == "main") {
+          } else if (group == "main" && main_tbl) {
             main_tbl.innerHTML = "";
-          } else if (group == "lnksys") {
-            masters_tbl.innerHTML = "";
-          } else if (group == "opb") {
+          } else if (group == "lnksys" && lnksys_tbl) {
+            lnksys_tbl.innerHTML = "";
+          } else if (group == "opb" && opb_tbl) {
             opb_tbl.innerHTML = "";
-          } else if (group == 'statictg') {
+          } else if (group == 'statictg' && statictg_tbl) {
             statictg_tbl.innerHTML = "";
-          } else if (group == "tgcount") {
+          } else if (group == "tgcount" && tgcount_tbl) {
             tgcount_tbl.innerHTML = "";
-          } else if (group == 'lsthrd_log') {
+          } else if (group == 'lsthrd_log' && lsthrd_log_tbl) {
             lsthrd_log_tbl.innerHTML = "";
           }
         }
@@ -109,16 +109,17 @@ window.onload = function() {
 };
 
 
-function Bmsg(_msg) { bridge_tbl.innerHTML = _msg; };
-function Cmsg(_msg) { lnksys_tbl.innerHTML = _msg; };
-function Imsg(_msg) { main_tbl.innerHTML = _msg; };
-function Omsg(_msg) { opb_tbl.innerHTML = _msg; };
-function Smsg(_msg) { statictg_tbl.innerHTML = _msg; };
-function Hmsg(_msg) { lsthrd_log_tbl.innerHTML = _msg; };
-function Tmsg(_msg) { tgcount_tbl.innerHTML = _msg; };
+function Bmsg(_msg) { if (bridge_tbl) bridge_tbl.innerHTML = _msg; };
+function Cmsg(_msg) { if (lnksys_tbl) lnksys_tbl.innerHTML = _msg; };
+function Imsg(_msg) { if (main_tbl) main_tbl.innerHTML = _msg; };
+function Omsg(_msg) { if (opb_tbl) opb_tbl.innerHTML = _msg; };
+function Smsg(_msg) { if (statictg_tbl) statictg_tbl.innerHTML = _msg; };
+function Hmsg(_msg) { if (lsthrd_log_tbl) lsthrd_log_tbl.innerHTML = _msg; };
+function Tmsg(_msg) { if (tgcount_tbl) tgcount_tbl.innerHTML = _msg; };
 
 
 function log(_msg) {
+  if (!ellog) return;
   ellog.innerHTML += _msg + '\n';
   ellog.scrollTop = ellog.scrollHeight;};
 
@@ -126,11 +127,10 @@ function log(_msg) {
 function conf_id() {
   const groups = ["main", "bridge", "lnksys", "opb", "statictg", "log", "lsthrd_log", "tgcount"];
   const tags = [document.getElementsByTagName("p"), document.getElementsByTagName("pre")]
-  for (i = 0; i < tags.length; i++) {
-    for (j = 0; j < tags[i].length; j++)
+  for (var i = 0; i < tags.length; i++) {
+    for (var j = 0; j < tags[i].length; j++)
       if (groups.includes(tags[i][j].id)) {
         conf_groups.push(tags[i][j].id);
     }
   }
-  console.log(conf_groups)
 };

@@ -25,9 +25,14 @@
       <td rowspan="2">
         <div class="tooltip">
           <span class="txt-0065ff"><b>{{ _cdata['CALLSIGN']}}</b></span>
-          <span class="fnt-8pt">(Id: {{ _client }})</span>
+          <span class="fnt-8pt">(Id: {{ _cdata['RADIO_ID'] if 'RADIO_ID' in _cdata else _client }})</span>
           <div class="tooltiptext c2s-pos1">
-            {% if _cdata['RX_FREQ'] == 'N/A' and _cdata['TX_FREQ'] == 'N/A' %}
+            {% if _cdata.get('PROTOCOL') == 'IPSC' %}
+            <b>Type: <span class="txt-yellow">IPSC Repeater</span></b> ({{ _cdata['SLOTS'] }})<br>
+            <b>Soft_Ver</b>: {{ _cdata['SOFTWARE_ID'] }}<br>
+            <b>Hardware</b>: {{ _cdata['PACKAGE_ID'] }}<br>
+            {% if _cdata['DESCRIPTION'] and _cdata['DESCRIPTION'] != '—' %}<b>Mode</b>: {{ _cdata['DESCRIPTION'] }}<br>{% endif %}
+            {% elif _cdata['RX_FREQ'] == 'N/A' and _cdata['TX_FREQ'] == 'N/A' %}
             <b>Type: <span class="txt-yellow">IP Network</span></b><br>
             {% else %}
             <b>Type: <span class="txt-yellow">Radio</span></b> ({{ _cdata['SLOTS'] }})<br>
@@ -36,7 +41,7 @@
             <b>Hardware</b>: {{_cdata['PACKAGE_ID'] }}
           </div>
         </div><br>
-        <div class="location">{{_cdata['LOCATION']}}</div>
+        <div class="location">{% if _cdata['LOCATION'] and _cdata['LOCATION'] != '—' %}{{ _cdata['LOCATION'] }}{% endif %}</div>
       </td>
         <td class="connted-bkgnd" rowspan="2">{{ _cdata['CONNECTED'] }}</td>
         <td class="txt-b70101 ts1-bkgnd">TS1</td>
