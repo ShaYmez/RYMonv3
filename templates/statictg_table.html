@@ -24,8 +24,8 @@
     <tr>
       <td rowspan="2">
         <div class="tooltip">
-          <span class="txt-0065ff"><b>{{ _cdata['CALLSIGN']}}</b></span>
-          <span class="fnt-8pt">(Id: {{ _cdata['RADIO_ID'] if 'RADIO_ID' in _cdata else _client }})</span>
+          <span class="{{ 'ipsc-callsign' if _cdata.get('PROTOCOL') == 'IPSC' else 'txt-0065ff' }}"><b>{{ _cdata['CALLSIGN']}}</b></span>
+          <span class="fnt-8pt">(Id: {% if _cdata.get('PROTOCOL') == 'IPSC' %}<span class="ipsc-id-pill">{{ _cdata['RADIO_ID'] if 'RADIO_ID' in _cdata else _client }}</span>{% else %}{{ _cdata['RADIO_ID'] if 'RADIO_ID' in _cdata else _client }}{% endif %})</span>
           <div class="tooltiptext c2s-pos1">
             {% if _cdata.get('PROTOCOL') == 'IPSC' %}
             <b>Type: <span class="txt-yellow">IPSC Repeater</span></b> ({{ _cdata['SLOTS'] }})<br>

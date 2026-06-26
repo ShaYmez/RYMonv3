@@ -1,5 +1,7 @@
 **RYMonv3 is a "dashboard" for RYSEN MASTER+ & HBlink3 servers by M0VUB.**
 
+**Version 3.1.0**
+
 ***This version has been forked from FDMR-Monitor by OA4DOA 2022***
 ***This version is also credited to HBMonV2 by SP2ONG 2019 - 2022***
 
@@ -83,7 +85,7 @@ sudo systemctl enable --now rymon
 
 ## IPSC support
 
-When RYSEN sends IPSC repeater systems in `CONFIG['SYSTEMS']['IPSC-N']` with `MODE: IPSC` and HBP-shaped peer fields, RYMon treats them like routing masters. Peers show on **Linked Systems** (`lnksys`) as `GB7NR (Id: 235287)` with Motorola software/hardware from `SOFTWARE_ID` / `PACKAGE_ID`, and live TS1/TS2 activity works via `CTABLE['MASTERS']`.
+When RYSEN sends IPSC repeater systems in `CONFIG['SYSTEMS']['IPSC-N']` with `MODE: IPSC` and HBP-shaped peer fields, RYMon treats them like routing masters. Peers show on **Linked Systems** (`lnksys`) as `GB7NR (Id: 235287)` with Motorola software/hardware from `SOFTWARE_ID` / `PACKAGE_ID`, **Motorola orange** (`#ff6600`) callsign styling, and live TS1/TS2 activity works via `CTABLE['MASTERS']`.
 
 Run the smoke test:
 

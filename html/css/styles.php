@@ -355,6 +355,53 @@ table.opb {
 .txt-002d62 {color: #002d62;}
 .txt-3a4aa6 {color: #3a4aa6;}
 
+/* Motorola IPSC repeaters — #ff6600 (RYSEN-MONITOR ipsc branch) */
+.ipsc-pill,
+.badge-ipsc {
+  background-color: #ff6600;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.conn2srv .hs-peers a.ipsc-pill:link,
+.conn2srv .hs-peers a.ipsc-pill:visited {
+  color: #ffffff;
+  text-decoration: none;
+  text-shadow: none;
+}
+
+.conn2srv .hs-peers a.ipsc-pill:hover {
+  color: #ffffff;
+  opacity: 0.92;
+}
+
+.ipsc-callsign,
+.txt-ipsc {
+  color: #ff6600;
+  font-weight: bold;
+}
+
+a.ipsc-callsign:link,
+a.ipsc-callsign:visited {
+  color: #ff6600;
+  text-shadow: none;
+}
+
+a.ipsc-callsign:hover {
+  color: #e55a00;
+}
+
+.ipsc-id-pill {
+  background-color: #ff6600;
+  color: #ffffff;
+  padding: 1px 5px;
+  border-radius: 8px;
+  font-weight: normal;
+}
+
 .TX {background-color: #90EE90;color:black;}
 .RX {background-color: #ff6600;color:#ffffff;}
 

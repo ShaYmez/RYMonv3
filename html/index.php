@@ -19,7 +19,7 @@
     <p>
       Copyright (c) 2016-2022<br>
       The Regents of the <a target="_blank" href=http://k0usy.mystrikingly.com>K0USY Group</a>. All rights reserved.<br>
-      <a title="FDMR Monitor OA4DOA v270422" target="_blank" href=https://github.com/yuvelq/FDMR-Monitor.git>Version OA4DOA 2022</a>
+      <a title="RYMonv3 v3.1.0" target="_blank" href="https://github.com/ShaYmez/RYMonv3">Version 3.1.0</a>
       <!-- Credits: SP2ONG 2019-2022 -->
       <!-- THIS COPYRIGHT NOTICE MUST BE DISPLAYED AS A CONDITION OF THE LICENCE GRANT FOR THIS SOFTWARE. ALL DERIVATEIVES WORKS MUST CARRY THIS NOTICE -->
     </p>
