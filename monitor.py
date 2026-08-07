@@ -68,6 +68,7 @@ OPCODE = {
     "BRIDGE_UPD": "\x05",
     "LINK_EVENT": "\x06",
     "BRDG_EVENT": "\x07",
+    "SERVER_INFO_SND": "\x08",
     "SERVER_MSG": "b"
     }
 
@@ -807,9 +808,9 @@ def render_fromdb(_tbl, _row_num, _snd=False):
 
 
 def build_tgstats():
+    tmp_dict = {}
     if CONFIG and CTABLE:
         CTABLE["SERVER"] ={"TS1":[],"TS2":[]}
-        tmp_dict = {}
         srv_info = 0
         # make a list with occupied systems
         for system in CTABLE["MASTERS"]:
@@ -1068,6 +1069,15 @@ def process_message(_bmessage):
 
     elif opcode == OPCODE["SERVER_MSG"]:
         logger.debug(f"SERVER MSG: {_message}")
+
+    elif opcode == OPCODE["SERVER_INFO_SND"]:
+        logger.debug("got SERVER_INFO_SND opcode")
+        try:
+            import json
+            info = json.loads(_bmessage[1:].decode("utf-8"))
+            logger.debug("RYSEN version from server: %s", info.get("rysen_version", "?"))
+        except Exception as exc:
+            logger.debug("SERVER_INFO_SND parse failed: %s", exc)
 
     else:
         logger.warning(f"got unknown opcode: {repr(opcode)}, message: {_message}")
