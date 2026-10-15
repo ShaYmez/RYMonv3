@@ -50,6 +50,7 @@ def _ipsc_peer(
 def test_is_routing_master():
     assert is_routing_master("MASTER")
     assert is_routing_master("IPSC")
+    assert is_routing_master("HYTERA")
     assert not is_routing_master("PEER")
 
 

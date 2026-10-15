@@ -2,6 +2,26 @@
 
 All notable changes to RYMonv3 are documented in this file.
 
+## [3.1.1] - 2026-06-25
+
+### Added
+
+- RYSEN `MODE: YSFPEER` reflector legs on Linked Systems (STATS-based, like PEER).
+- RYSEN `MODE: HYTERA` routing masters (same peer table path as IPSC / MASTER).
+- `sync_linked_peer_from_config()` — shared PEER / XLXPEER / YSFPEER CONFIG handling.
+- `tests/test_rysen_modes.py` smoke tests for YSFPEER and HYTERA.
+
+### Fixed
+
+- Linked peer modes ignored when `PEER or XLXPEER and HB_INC` precedence dropped YSFPEER.
+- `CONFIG_SND` updates now run when only `PEERS` or `OPENBRIDGES` exist (not only masters).
+- Dynamic add/remove of linked peer systems on `CONFIG_UPD` / subsequent `CONFIG_SND`.
+- String `RADIO_ID` on YSF stanzas (no longer passed through `int_id()`).
+
+### Changed
+
+- Peer colours: IPSC orange (`#ff6600`), Hytera yellow (`#f0c800`), YSF purple (`#9933cc`) on Main, Linked Systems, and Static TG.
+
 ## [3.1.0] - 2026-06-25
 
 ### Added

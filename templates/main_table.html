@@ -101,11 +101,16 @@
           {% if _table['MASTERS'][_master]['PEERS']|length >0 %}
           {% for _client, _cdata in _table['MASTERS'][_master]['PEERS'].items() %}
           <div class="tooltip">
-            <a target="_blank" href="http://www.qrz.com/db/{{_cdata['CALLSIGN']}}" class="{{ 'ipsc-pill' if _cdata.get('PROTOCOL') == 'IPSC' else '' }}"><b>{{_cdata['CALLSIGN']}}</b></a>
+            <a target="_blank" href="http://www.qrz.com/db/{{_cdata['CALLSIGN']}}" class="{% if _cdata.get('PROTOCOL') == 'IPSC' %}ipsc-pill{% elif _cdata.get('PROTOCOL') == 'HYTERA' %}hytera-pill{% endif %}"><b>{{_cdata['CALLSIGN']}}</b></a>
             <div class="tooltiptext c2s-pos1">
               <b>DMR ID</b>: <span class="txt-yellow"><b>{{ _cdata['RADIO_ID'] if 'RADIO_ID' in _cdata else _client }}</b></span><br>
               {% if _cdata.get('PROTOCOL') == 'IPSC' %}
               <b>Type: <span class="txt-yellow">IPSC Repeater</span></b> ({{ _cdata['SLOTS'] }})<br>
+              <b>Hardware</b>: {{ _cdata['PACKAGE_ID'] }}<br>
+              <b>Soft_Ver</b>: {{ _cdata['SOFTWARE_ID'] }}<br>
+              {% if _cdata['DESCRIPTION'] and _cdata['DESCRIPTION'] != '—' %}<b>Mode</b>: {{ _cdata['DESCRIPTION'] }}<br>{% endif %}
+              {% elif _cdata.get('PROTOCOL') == 'HYTERA' %}
+              <b>Type: <span class="txt-yellow">Hytera Repeater</span></b> ({{ _cdata['SLOTS'] }})<br>
               <b>Hardware</b>: {{ _cdata['PACKAGE_ID'] }}<br>
               <b>Soft_Ver</b>: {{ _cdata['SOFTWARE_ID'] }}<br>
               {% if _cdata['DESCRIPTION'] and _cdata['DESCRIPTION'] != '—' %}<b>Mode</b>: {{ _cdata['DESCRIPTION'] }}<br>{% endif %}
@@ -114,7 +119,7 @@
               {% else %} 
               <b>Type: <span class="txt-yellow">Radio</span></b>&nbsp;({{ _cdata['SLOTS'] }})<br>
               {% endif %}
-              {% if _cdata.get('PROTOCOL') != 'IPSC' %}
+              {% if _cdata.get('PROTOCOL') not in ('IPSC', 'HYTERA') %}
               <b>Hardware</b>: {{_cdata['PACKAGE_ID'] }}<br>
               <b>Soft_Ver</b>: {{_cdata['SOFTWARE_ID'] }}<br>
               {% endif %}
@@ -132,7 +137,9 @@
         <h4 class="tittle">SYSTEMS:</h4>
         <div class="hs-peers">
           {% for _peer, _pdata  in _table['PEERS'].items() %}
-          <div class="tooltip {{'bkgnd-8ecfb4 txt-464646' if _table['PEERS'][_peer]['STATS']['CONNECTION'] == 'YES' else 'bkgnd-ff0000 txt-white'}}"><b>&nbsp;&nbsp;{{_peer}}&nbsp;&nbsp;</b>
+          {% set _pconn = _table['PEERS'][_peer]['STATS']['CONNECTION'] == 'YES' %}
+          {% set _ysf = _table['PEERS'][_peer]['MODE'] == 'YSFPEER' %}
+          <div class="tooltip {% if _ysf and _pconn %}ysf-pill{% elif _pconn %}bkgnd-8ecfb4 txt-464646{% else %}bkgnd-ff0000 txt-white{% endif %}"><b>&nbsp;&nbsp;{% if _ysf %}{{ _table['PEERS'][_peer]['CALLSIGN'] }}{% else %}{{_peer}}{% endif %}&nbsp;&nbsp;</b>
             {% if _table['PEERS'][_peer]['STATS']['CONNECTION'] == 'YES' %}
             <span class="tooltiptext c2s-pos2">Connected</span>
             {% else %}

@@ -402,6 +402,100 @@ a.ipsc-callsign:hover {
   font-weight: normal;
 }
 
+/* Hytera IP Multi-site — yellow */
+.hytera-pill,
+.badge-hytera {
+  background-color: #f0c800;
+  color: #1a1a1a;
+  padding: 2px 8px;
+  border-radius: 10px;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.conn2srv .hs-peers a.hytera-pill:link,
+.conn2srv .hs-peers a.hytera-pill:visited {
+  color: #1a1a1a;
+  text-decoration: none;
+  text-shadow: none;
+}
+
+.conn2srv .hs-peers a.hytera-pill:hover {
+  color: #1a1a1a;
+  opacity: 0.92;
+}
+
+.hytera-callsign,
+.txt-hytera {
+  color: #c9a600;
+  font-weight: bold;
+}
+
+a.hytera-callsign:link,
+a.hytera-callsign:visited {
+  color: #c9a600;
+  text-shadow: none;
+}
+
+a.hytera-callsign:hover {
+  color: #a88b00;
+}
+
+.hytera-id-pill {
+  background-color: #f0c800;
+  color: #1a1a1a;
+  padding: 1px 5px;
+  border-radius: 8px;
+  font-weight: normal;
+}
+
+/* YSF reflector legs — purple */
+.ysf-pill,
+.badge-ysf {
+  background-color: #9933cc;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.conn2srv .hs-peers a.ysf-pill:link,
+.conn2srv .hs-peers a.ysf-pill:visited {
+  color: #ffffff;
+  text-decoration: none;
+  text-shadow: none;
+}
+
+.conn2srv .hs-peers a.ysf-pill:hover {
+  color: #ffffff;
+  opacity: 0.92;
+}
+
+.ysf-callsign,
+.txt-ysf {
+  color: #9933cc;
+  font-weight: bold;
+}
+
+a.ysf-callsign:link,
+a.ysf-callsign:visited {
+  color: #9933cc;
+  text-shadow: none;
+}
+
+a.ysf-callsign:hover {
+  color: #7a29a3;
+}
+
+.ysf-id-pill {
+  background-color: #9933cc;
+  color: #ffffff;
+  padding: 1px 5px;
+  border-radius: 8px;
+  font-weight: normal;
+}
+
 .TX {background-color: #90EE90;color:black;}
 .RX {background-color: #ff6600;color:#ffffff;}
 

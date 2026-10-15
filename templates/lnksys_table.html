@@ -18,13 +18,19 @@
       <td rowspan="{{ (_table['MASTERS'][_master]['PEERS']|length * 2) +1 }}"><b>{{_master}}<br><div class="fnt-8pt">{{_table['MASTERS'][_master]['REPEAT']}}</div></b></td>
     </tr>
     {% for _client, _cdata in _table['MASTERS'][_master]['PEERS'].items() %}
+    {% set _proto = _cdata.get('PROTOCOL') %}
     <tr>
       <td rowspan="2">
         <div class="tooltip">
-          <span class="{{ 'ipsc-callsign' if _cdata.get('PROTOCOL') == 'IPSC' else 'txt-0065ff' }}"><b>{{ _cdata['CALLSIGN']}}</b></span><span class="fnt-8pt"> (Id: {% if _cdata.get('PROTOCOL') == 'IPSC' %}<span class="ipsc-id-pill">{{ _cdata['RADIO_ID'] if 'RADIO_ID' in _cdata else _client }}</span>{% else %}{{ _cdata['RADIO_ID'] if 'RADIO_ID' in _cdata else _client }}{% endif %})</span>
+          <span class="{% if _proto == 'IPSC' %}ipsc-callsign{% elif _proto == 'HYTERA' %}hytera-callsign{% else %}txt-0065ff{% endif %}"><b>{{ _cdata['CALLSIGN']}}</b></span><span class="fnt-8pt"> (Id: {% if _proto == 'IPSC' %}<span class="ipsc-id-pill">{{ _cdata['RADIO_ID'] if 'RADIO_ID' in _cdata else _client }}</span>{% elif _proto == 'HYTERA' %}<span class="hytera-id-pill">{{ _cdata['RADIO_ID'] if 'RADIO_ID' in _cdata else _client }}</span>{% else %}{{ _cdata['RADIO_ID'] if 'RADIO_ID' in _cdata else _client }}{% endif %})</span>
           <div class="tooltiptext c2s-pos1">
-            {% if _cdata.get('PROTOCOL') == 'IPSC' %}
+            {% if _proto == 'IPSC' %}
             <b>Type: <span class="txt-yellow">IPSC Repeater</span></b> ({{ _cdata['SLOTS'] }})<br>
+            <b>Soft_Ver</b>: {{ _cdata['SOFTWARE_ID'] }}<br>
+            <b>Hardware</b>: {{ _cdata['PACKAGE_ID'] }}<br>
+            {% if _cdata['DESCRIPTION'] and _cdata['DESCRIPTION'] != '—' %}<b>Mode</b>: {{ _cdata['DESCRIPTION'] }}<br>{% endif %}
+            {% elif _proto == 'HYTERA' %}
+            <b>Type: <span class="txt-yellow">Hytera Repeater</span></b> ({{ _cdata['SLOTS'] }})<br>
             <b>Soft_Ver</b>: {{ _cdata['SOFTWARE_ID'] }}<br>
             <b>Hardware</b>: {{ _cdata['PACKAGE_ID'] }}<br>
             {% if _cdata['DESCRIPTION'] and _cdata['DESCRIPTION'] != '—' %}<b>Mode</b>: {{ _cdata['DESCRIPTION'] }}<br>{% endif %}
@@ -73,15 +79,16 @@
       <th class="th6wd">Destination</th>
     </tr>
     {% for _peer, _pdata in _table['PEERS'].items() %}
+    {% set _pmode = _table['PEERS'][_peer]['MODE'] %}
     <tr>
       <td rowspan="2">
-        <span><b>{{ _peer}}</b></span><br>
-        <span class="fnt-7pt">Mode: {{ _table['PEERS'][_peer]['MODE'] }}</span>
+        <span class="{% if _pmode == 'YSFPEER' %}ysf-callsign{% endif %}"><b>{{ _peer}}</b></span><br>
+        <span class="fnt-7pt">Mode: <span class="{% if _pmode == 'YSFPEER' %}badge-ysf{% endif %}">{{ _pmode }}</span></span>
       </td>
       <td rowspan="2">
         <div class="tooltip">
-          <span class="txt-0065ff"><b>{{_table['PEERS'][_peer]['CALLSIGN']}}</b></span>
-          <span class="fnt-8pt"> (Id: {{ _table['PEERS'][_peer]['RADIO_ID']}})</span>
+          <span class="{% if _pmode == 'YSFPEER' %}ysf-callsign{% else %}txt-0065ff{% endif %}"><b>{{_table['PEERS'][_peer]['CALLSIGN']}}</b></span>
+          <span class="fnt-8pt"> (Id: {% if _pmode == 'YSFPEER' %}<span class="ysf-id-pill">{{ _table['PEERS'][_peer]['RADIO_ID']}}</span>{% else %}{{ _table['PEERS'][_peer]['RADIO_ID']}}{% endif %})</span>
           <span class="tooltiptext c2s-pos2"><b>Time Slot: <span class="txt-yellow">{{ _table['PEERS'][_peer]['SLOTS'] }}</span></b></span>
         </div><br>
         <div class="location">{{_table['PEERS'][_peer]['LOCATION']}}</div>
