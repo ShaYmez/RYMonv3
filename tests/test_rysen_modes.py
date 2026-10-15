@@ -55,6 +55,35 @@ def test_ysfpeer_in_peers_table():
     assert peer["SLOTS"] == "2"
 
 
+def test_ysfpeer_connected_none_does_not_crash():
+    """RYSEN YSFPEER sets CONNECTION YES before CONNECTED has a timestamp."""
+    config = {
+        "YSF-SFG": {
+            "ENABLED": True,
+            "MODE": "YSFPEER",
+            "LOCATION": "UK",
+            "DESCRIPTION": "YSF 2359",
+            "URL": "",
+            "CALLSIGN": "MB6HA",
+            "RADIO_ID": "235593305",
+            "MASTER_IP": "127.0.0.1",
+            "MASTER_PORT": 42010,
+            "STATS": {
+                "CONNECTION": "YES",
+                "CONNECTED": None,
+                "PINGS_SENT": 4,
+                "PINGS_ACKD": 0,
+            },
+        }
+    }
+    ctable = {"MASTERS": {}, "PEERS": {}, "OPENBRIDGES": {}}
+    build_hblink_table(config, ctable)
+    peer = ctable["PEERS"]["YSF-SFG"]
+    assert peer["STATS"]["CONNECTION"] == "YES"
+    assert peer["STATS"]["CONNECTED"] == "--   --"
+    assert peer["STATS"]["PINGS_SENT"] == 4
+
+
 def test_hytera_system_in_masters():
     peer_key = b"\x00\x00\x00\x01"
     config = {
@@ -80,5 +109,6 @@ def test_hytera_system_in_masters():
 if __name__ == "__main__":
     test_routing_and_linked_peer_modes()
     test_ysfpeer_in_peers_table()
+    test_ysfpeer_connected_none_does_not_crash()
     test_hytera_system_in_masters()
     print("OK: RYSEN modes test passed")

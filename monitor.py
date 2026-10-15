@@ -302,11 +302,17 @@ def alias_tgid(_id, _dict):
 
 # Return friendly elapsed time from time in seconds.
 def time_str(_time, param):
+    if _time is None or _time == "":
+        return "--   --"
+    try:
+        _time = int(_time)
+    except (TypeError, ValueError):
+        return "--   --"
     now = int(time())
     if param == "since":
-        _time = now - int(_time)
+        _time = now - _time
     elif param == "to":
-        _time = int(_time) - now
+        _time = _time - now
     seconds = _time % 60
     minutes = int(_time/60) % 60
     hours = int(_time/60/60) % 24

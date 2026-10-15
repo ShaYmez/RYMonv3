@@ -2,6 +2,12 @@
 
 All notable changes to RYMonv3 are documented in this file.
 
+## [3.1.2] - 2026-10-15
+
+### Fixed
+
+- `time_str()` no longer crashes when a linked peer reports `CONNECTION: YES` with `CONNECTED: None` (RYSEN `YSFPEER` poll ack). That exception dropped the report socket and left the dashboard on “Waiting for data from server…”.
+
 ## [3.1.1] - 2026-06-25
 
 ### Added
