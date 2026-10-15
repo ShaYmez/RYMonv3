@@ -83,7 +83,7 @@
     <tr>
       <td rowspan="2">
         <span class="{% if _pmode == 'YSFPEER' %}ysf-callsign{% endif %}"><b>{{ _peer}}</b></span><br>
-        <span class="fnt-7pt">Mode: <span class="{% if _pmode == 'YSFPEER' %}badge-ysf{% endif %}">{{ _pmode }}</span></span>
+        <span class="fnt-7pt">Mode: <span class="{% if _pmode == 'YSFPEER' %}badge-ysf{% endif %}">{% if _pmode == 'YSFPEER' %}YSF{% else %}{{ _pmode }}{% endif %}</span></span>
       </td>
       <td rowspan="2">
         <div class="tooltip">
@@ -96,7 +96,7 @@
       <td rowspan="2" 
         class="{{ 'peer-conn' if _table['PEERS'][_peer]['STATS']['CONNECTION'] == 'YES' else 'peer-disc' }}">
         {{ _table['PEERS'][_peer]['STATS']['CONNECTED'] }}<br>
-        <div class="fnt-8pt">{{ _table['PEERS'][_peer]['STATS']['PINGS_SENT'] }} / {{ _table['PEERS'][_peer]['STATS']['PINGS_ACKD'] }} / {{ _table['PEERS'][_peer]['STATS']['PINGS_SENT'] - _table['PEERS'][_peer]['STATS']['PINGS_ACKD'] }}</div>
+        <div class="fnt-8pt">{% if _pmode == 'YSFPEER' %}{{ _table['PEERS'][_peer]['STATS']['PINGS_SENT'] }} polls{% else %}{{ _table['PEERS'][_peer]['STATS']['PINGS_SENT'] }} / {{ _table['PEERS'][_peer]['STATS']['PINGS_ACKD'] }} / {{ _table['PEERS'][_peer]['STATS']['PINGS_SENT'] - _table['PEERS'][_peer]['STATS']['PINGS_ACKD'] }}{% endif %}</div>
       </td>
       <td class="{{ _pdata[1]['TRX'] if _pdata[1]['TRX'] else 'txt-b70101' }}">TS1</td>
       <td class="{{ _pdata[1]['TRX'] if _pdata[1]['TRX'] else '' }}">{{ _pdata[1]['SUB']|safe }}</td>

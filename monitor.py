@@ -399,6 +399,7 @@ def cleanTE():
 
 ROUTING_MASTER_MODES = ("MASTER", "IPSC", "HYTERA")
 LINKED_PEER_MODES = ("PEER", "XLXPEER", "YSFPEER")
+SERVICE_PEER_MODES = ("XLXPEER", "YSFPEER")
 
 
 def is_routing_master(mode):
@@ -407,6 +408,27 @@ def is_routing_master(mode):
 
 def is_linked_peer_mode(mode):
     return mode in LINKED_PEER_MODES
+
+
+def _include_linked_peer(mode):
+    """XLX and YSF always. Homebrew peers only when that table is enabled."""
+    if mode in SERVICE_PEER_MODES:
+        return True
+    return mode == "PEER" and bool(CONF["GLOBAL"].get("HB_INC"))
+
+
+def _ysf_location(_hbp_data):
+    """Room name from the YSF stanza, plus DGID when it is not the whole reflector."""
+    text = _hb_config_text(_hbp_data.get("DESCRIPTION")) or _hb_config_text(
+        _hbp_data.get("LOCATION"))
+    try:
+        dgid = int(_hbp_data.get("DGID") or 0)
+    except (TypeError, ValueError):
+        dgid = 0
+    if not dgid:
+        return text
+    extra = f"DGID {dgid}"
+    return f"{text} · {extra}" if text else extra
 
 
 def _peer_slots_label(_hbp_data):
@@ -426,7 +448,10 @@ def sync_linked_peer_from_config(_hbp, _hbp_data, _stats_table):
     """Populate CTABLE['PEERS'] entry from a RYSEN / HBlink CONFIG stanza."""
     _stats_table["PEERS"][_hbp] = {}
     _stats_table["PEERS"][_hbp]["MODE"] = _hbp_data["MODE"]
-    _stats_table["PEERS"][_hbp]["LOCATION"] = _hb_config_text(_hbp_data.get("LOCATION"))
+    if _hbp_data["MODE"] == "YSFPEER":
+        _stats_table["PEERS"][_hbp]["LOCATION"] = _ysf_location(_hbp_data)
+    else:
+        _stats_table["PEERS"][_hbp]["LOCATION"] = _hb_config_text(_hbp_data.get("LOCATION"))
     _stats_table["PEERS"][_hbp]["DESCRIPTION"] = _hb_config_text(_hbp_data.get("DESCRIPTION"))
     _stats_table["PEERS"][_hbp]["URL"] = _hb_config_text(_hbp_data.get("URL", ""))
     _stats_table["PEERS"][_hbp]["CALLSIGN"] = _hb_config_text(_hbp_data.get("CALLSIGN"))
@@ -449,14 +474,20 @@ def sync_linked_peer_from_config(_hbp, _hbp_data, _stats_table):
         stats = _hbp_data.get("STATS", {})
         _stats_table["PEERS"][_hbp]["STATS"]["CONNECTION"] = stats.get("CONNECTION", "NO")
         if stats.get("CONNECTION") == "YES":
-            _stats_table["PEERS"][_hbp]["STATS"]["CONNECTED"] = time_str(stats["CONNECTED"], "since")
+            _stats_table["PEERS"][_hbp]["STATS"]["CONNECTED"] = time_str(stats.get("CONNECTED"), "since")
             _stats_table["PEERS"][_hbp]["STATS"]["PINGS_SENT"] = stats.get("PINGS_SENT", 0)
-            _stats_table["PEERS"][_hbp]["STATS"]["PINGS_ACKD"] = stats.get("PINGS_ACKD", 0)
+            if _hbp_data["MODE"] == "YSFPEER":
+                _stats_table["PEERS"][_hbp]["STATS"]["PINGS_ACKD"] = None
+            else:
+                _stats_table["PEERS"][_hbp]["STATS"]["PINGS_ACKD"] = stats.get("PINGS_ACKD", 0)
         else:
             _stats_table["PEERS"][_hbp]["STATS"]["CONNECTED"] = "--   --"
             _stats_table["PEERS"][_hbp]["STATS"]["PINGS_SENT"] = 0
             _stats_table["PEERS"][_hbp]["STATS"]["PINGS_ACKD"] = 0
-    _stats_table["PEERS"][_hbp]["SLOTS"] = _peer_slots_label(_hbp_data)
+    if _hbp_data["MODE"] == "YSFPEER":
+        _stats_table["PEERS"][_hbp]["SLOTS"] = "2"
+    else:
+        _stats_table["PEERS"][_hbp]["SLOTS"] = _peer_slots_label(_hbp_data)
     for ts in range(1, 3):
         _stats_table["PEERS"][_hbp][ts] = {}
         _stats_table["PEERS"][_hbp][ts]["COLOR"] = ""
@@ -610,7 +641,7 @@ def build_hblink_table(_config, _stats_table):
                     add_hb_peer(_hbp_data["PEERS"][_peer], _stats_table["MASTERS"][_hbp]["PEERS"], _peer)
 
             # Process Peer Systems (PEER / XLX / YSF reflector legs)
-            elif is_linked_peer_mode(_hbp_data["MODE"]) and CONF["GLOBAL"]["HB_INC"]:
+            elif _include_linked_peer(_hbp_data["MODE"]):
                 sync_linked_peer_from_config(_hbp, _hbp_data, _stats_table)
 
             # Process OpenBridge systems
@@ -666,19 +697,18 @@ def update_hblink_table(_config, _stats_table):
                 _stats_table["MASTERS"][_hbp]["PEERS"][_peer]["CONNECTED"] = time_str(
                     _config[_hbp]["PEERS"][bytes_4(_peer)]["CONNECTED"],"since")
 
-    if CONF["GLOBAL"]["HB_INC"]:
-        for _hbp, _hbp_data in _config.items():
-            if not _hbp_data.get("ENABLED"):
-                continue
-            if not is_linked_peer_mode(_hbp_data["MODE"]):
-                continue
-            if _hbp not in _stats_table["PEERS"]:
-                logger.info(f"Adding linked peer system from config: {_hbp}")
-                sync_linked_peer_from_config(_hbp, _hbp_data, _stats_table)
-        for _hbp in list(_stats_table["PEERS"]):
-            if _hbp not in _config or not is_linked_peer_mode(_config[_hbp].get("MODE", "")):
-                logger.info(f"Deleting stats peer not in hblink config: {_hbp}")
-                del _stats_table["PEERS"][_hbp]
+    for _hbp, _hbp_data in _config.items():
+        if not _hbp_data.get("ENABLED"):
+            continue
+        if not _include_linked_peer(_hbp_data["MODE"]):
+            continue
+        if _hbp not in _stats_table["PEERS"]:
+            logger.info(f"Adding linked peer system from config: {_hbp}")
+            sync_linked_peer_from_config(_hbp, _hbp_data, _stats_table)
+    for _hbp in list(_stats_table["PEERS"]):
+        if _hbp not in _config or not _include_linked_peer(_config[_hbp].get("MODE", "")):
+            logger.info(f"Deleting stats peer not in hblink config: {_hbp}")
+            del _stats_table["PEERS"][_hbp]
 
     for _hbp in _stats_table["PEERS"]:
         if _hbp not in _config:
@@ -695,11 +725,17 @@ def update_hblink_table(_config, _stats_table):
                 _stats_table["PEERS"][_hbp]["STATS"]["PINGS_SENT"] = 0
                 _stats_table["PEERS"][_hbp]["STATS"]["PINGS_ACKD"] = 0
         else:
-            if _config[_hbp]["STATS"]["CONNECTION"] == "YES":
-                _stats_table["PEERS"][_hbp]["STATS"]["CONNECTED"] = time_str(_config[_hbp]["STATS"]["CONNECTED"],"since")
-                _stats_table["PEERS"][_hbp]["STATS"]["CONNECTION"] = _config[_hbp]["STATS"]["CONNECTION"]
-                _stats_table["PEERS"][_hbp]["STATS"]["PINGS_SENT"] = _config[_hbp]["STATS"]["PINGS_SENT"]
-                _stats_table["PEERS"][_hbp]["STATS"]["PINGS_ACKD"] = _config[_hbp]["STATS"]["PINGS_ACKD"]
+            stats = _config[_hbp].get("STATS") or {}
+            if _stats_table["PEERS"][_hbp]["MODE"] == "YSFPEER":
+                _stats_table["PEERS"][_hbp]["LOCATION"] = _ysf_location(_config[_hbp])
+            if stats.get("CONNECTION") == "YES":
+                _stats_table["PEERS"][_hbp]["STATS"]["CONNECTED"] = time_str(stats.get("CONNECTED"),"since")
+                _stats_table["PEERS"][_hbp]["STATS"]["CONNECTION"] = stats.get("CONNECTION")
+                _stats_table["PEERS"][_hbp]["STATS"]["PINGS_SENT"] = stats.get("PINGS_SENT", 0)
+                if _stats_table["PEERS"][_hbp]["MODE"] == "YSFPEER":
+                    _stats_table["PEERS"][_hbp]["STATS"]["PINGS_ACKD"] = None
+                else:
+                    _stats_table["PEERS"][_hbp]["STATS"]["PINGS_ACKD"] = stats.get("PINGS_ACKD", 0)
             else:
                 _stats_table["PEERS"][_hbp]["STATS"]["CONNECTED"] = "--   --"
                 _stats_table["PEERS"][_hbp]["STATS"]["CONNECTION"] = _config[_hbp]["STATS"]["CONNECTION"]
