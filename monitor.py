@@ -398,8 +398,9 @@ def cleanTE():
 
 
 ROUTING_MASTER_MODES = ("MASTER", "IPSC", "HYTERA")
-LINKED_PEER_MODES = ("PEER", "XLXPEER", "YSFPEER")
-SERVICE_PEER_MODES = ("XLXPEER", "YSFPEER")
+LINKED_PEER_MODES = ("PEER", "XLXPEER", "YSFPEER", "NXDNPEER")
+SERVICE_PEER_MODES = ("XLXPEER", "YSFPEER", "NXDNPEER")
+REFLECTOR_PEER_MODES = ("YSFPEER", "NXDNPEER")
 
 
 def is_routing_master(mode):
@@ -411,7 +412,7 @@ def is_linked_peer_mode(mode):
 
 
 def _include_linked_peer(mode):
-    """XLX and YSF always. Homebrew peers only when that table is enabled."""
+    """XLX, YSF and NXDN always. Homebrew peers only when that table is enabled."""
     if mode in SERVICE_PEER_MODES:
         return True
     return mode == "PEER" and bool(CONF["GLOBAL"].get("HB_INC"))
@@ -428,6 +429,20 @@ def _ysf_location(_hbp_data):
     if not dgid:
         return text
     extra = f"DGID {dgid}"
+    return f"{text} · {extra}" if text else extra
+
+
+def _nxdn_location(_hbp_data):
+    """Room name from the NXDN stanza, plus the reflector talkgroup."""
+    text = _hb_config_text(_hbp_data.get("DESCRIPTION")) or _hb_config_text(
+        _hbp_data.get("LOCATION"))
+    try:
+        talkgroup = int(_hbp_data.get("TALKGROUP") or 0)
+    except (TypeError, ValueError):
+        talkgroup = 0
+    if not talkgroup:
+        return text
+    extra = f"TG {talkgroup}"
     return f"{text} · {extra}" if text else extra
 
 
@@ -450,6 +465,8 @@ def sync_linked_peer_from_config(_hbp, _hbp_data, _stats_table):
     _stats_table["PEERS"][_hbp]["MODE"] = _hbp_data["MODE"]
     if _hbp_data["MODE"] == "YSFPEER":
         _stats_table["PEERS"][_hbp]["LOCATION"] = _ysf_location(_hbp_data)
+    elif _hbp_data["MODE"] == "NXDNPEER":
+        _stats_table["PEERS"][_hbp]["LOCATION"] = _nxdn_location(_hbp_data)
     else:
         _stats_table["PEERS"][_hbp]["LOCATION"] = _hb_config_text(_hbp_data.get("LOCATION"))
     _stats_table["PEERS"][_hbp]["DESCRIPTION"] = _hb_config_text(_hbp_data.get("DESCRIPTION"))
@@ -476,7 +493,7 @@ def sync_linked_peer_from_config(_hbp, _hbp_data, _stats_table):
         if stats.get("CONNECTION") == "YES":
             _stats_table["PEERS"][_hbp]["STATS"]["CONNECTED"] = time_str(stats.get("CONNECTED"), "since")
             _stats_table["PEERS"][_hbp]["STATS"]["PINGS_SENT"] = stats.get("PINGS_SENT", 0)
-            if _hbp_data["MODE"] == "YSFPEER":
+            if _hbp_data["MODE"] in REFLECTOR_PEER_MODES:
                 _stats_table["PEERS"][_hbp]["STATS"]["PINGS_ACKD"] = None
             else:
                 _stats_table["PEERS"][_hbp]["STATS"]["PINGS_ACKD"] = stats.get("PINGS_ACKD", 0)
@@ -484,7 +501,7 @@ def sync_linked_peer_from_config(_hbp, _hbp_data, _stats_table):
             _stats_table["PEERS"][_hbp]["STATS"]["CONNECTED"] = "--   --"
             _stats_table["PEERS"][_hbp]["STATS"]["PINGS_SENT"] = 0
             _stats_table["PEERS"][_hbp]["STATS"]["PINGS_ACKD"] = 0
-    if _hbp_data["MODE"] == "YSFPEER":
+    if _hbp_data["MODE"] in REFLECTOR_PEER_MODES:
         _stats_table["PEERS"][_hbp]["SLOTS"] = "2"
     else:
         _stats_table["PEERS"][_hbp]["SLOTS"] = _peer_slots_label(_hbp_data)
@@ -728,11 +745,13 @@ def update_hblink_table(_config, _stats_table):
             stats = _config[_hbp].get("STATS") or {}
             if _stats_table["PEERS"][_hbp]["MODE"] == "YSFPEER":
                 _stats_table["PEERS"][_hbp]["LOCATION"] = _ysf_location(_config[_hbp])
+            elif _stats_table["PEERS"][_hbp]["MODE"] == "NXDNPEER":
+                _stats_table["PEERS"][_hbp]["LOCATION"] = _nxdn_location(_config[_hbp])
             if stats.get("CONNECTION") == "YES":
                 _stats_table["PEERS"][_hbp]["STATS"]["CONNECTED"] = time_str(stats.get("CONNECTED"),"since")
                 _stats_table["PEERS"][_hbp]["STATS"]["CONNECTION"] = stats.get("CONNECTION")
                 _stats_table["PEERS"][_hbp]["STATS"]["PINGS_SENT"] = stats.get("PINGS_SENT", 0)
-                if _stats_table["PEERS"][_hbp]["MODE"] == "YSFPEER":
+                if _stats_table["PEERS"][_hbp]["MODE"] in REFLECTOR_PEER_MODES:
                     _stats_table["PEERS"][_hbp]["STATS"]["PINGS_ACKD"] = None
                 else:
                     _stats_table["PEERS"][_hbp]["STATS"]["PINGS_ACKD"] = stats.get("PINGS_ACKD", 0)

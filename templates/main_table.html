@@ -139,7 +139,8 @@
           {% for _peer, _pdata  in _table['PEERS'].items() %}
           {% set _pconn = _table['PEERS'][_peer]['STATS']['CONNECTION'] == 'YES' %}
           {% set _ysf = _table['PEERS'][_peer]['MODE'] == 'YSFPEER' %}
-          <div class="tooltip {% if _ysf and _pconn %}ysf-pill{% elif _pconn %}bkgnd-8ecfb4 txt-464646{% else %}bkgnd-ff0000 txt-white{% endif %}"><b>&nbsp;&nbsp;{% if _ysf %}{{ _table['PEERS'][_peer]['CALLSIGN'] }}{% else %}{{_peer}}{% endif %}&nbsp;&nbsp;</b>
+          {% set _nxdn = _table['PEERS'][_peer]['MODE'] == 'NXDNPEER' %}
+          <div class="tooltip {% if _ysf and _pconn %}ysf-pill{% elif _nxdn and _pconn %}nxdn-pill{% elif _pconn %}bkgnd-8ecfb4 txt-464646{% else %}bkgnd-ff0000 txt-white{% endif %}"><b>&nbsp;&nbsp;{% if _ysf or _nxdn %}{{ _table['PEERS'][_peer]['CALLSIGN'] }}{% else %}{{_peer}}{% endif %}&nbsp;&nbsp;</b>
             {% if _table['PEERS'][_peer]['STATS']['CONNECTION'] == 'YES' %}
             <span class="tooltiptext c2s-pos2">Connected</span>
             {% else %}

@@ -496,6 +496,53 @@ a.ysf-callsign:hover {
   font-weight: normal;
 }
 
+/* NXDN reflector legs — blue */
+.nxdn-pill,
+.badge-nxdn {
+  background-color: #1a73e8;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.conn2srv .hs-peers a.nxdn-pill:link,
+.conn2srv .hs-peers a.nxdn-pill:visited {
+  color: #ffffff;
+  text-decoration: none;
+  text-shadow: none;
+}
+
+.conn2srv .hs-peers a.nxdn-pill:hover {
+  color: #ffffff;
+  opacity: 0.92;
+}
+
+.nxdn-callsign,
+.txt-nxdn {
+  color: #1a73e8;
+  font-weight: bold;
+}
+
+a.nxdn-callsign:link,
+a.nxdn-callsign:visited {
+  color: #1a73e8;
+  text-shadow: none;
+}
+
+a.nxdn-callsign:hover {
+  color: #1558b0;
+}
+
+.nxdn-id-pill {
+  background-color: #1a73e8;
+  color: #ffffff;
+  padding: 1px 5px;
+  border-radius: 8px;
+  font-weight: normal;
+}
+
 .TX {background-color: #90EE90;color:black;}
 .RX {background-color: #ff6600;color:#ffffff;}
 

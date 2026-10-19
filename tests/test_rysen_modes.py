@@ -27,6 +27,7 @@ from tests.test_ipsc_masters import _ipsc_peer  # noqa: E402
 def test_routing_and_linked_peer_modes():
     assert is_routing_master("HYTERA")
     assert is_linked_peer_mode("YSFPEER")
+    assert is_linked_peer_mode("NXDNPEER")
     assert not is_linked_peer_mode("MASTER")
 
 
@@ -148,6 +149,61 @@ def test_rysen_ysf_report_shows_room_and_polls():
         monitor.CONF["GLOBAL"]["HB_INC"] = saved
 
 
+def test_rysen_nxdn_report_shows_room_and_polls():
+    """NXDN uses the same poll display as YSF, in blue."""
+    saved = monitor.CONF["GLOBAL"].get("HB_INC")
+    monitor.CONF["GLOBAL"]["HB_INC"] = False
+    try:
+        config = {
+            "NXDN-ROOM": {
+                "ENABLED": True,
+                "MODE": "NXDNPEER",
+                "CALLSIGN": b"MX0SXC    ",
+                "RADIO_ID": (2356427).to_bytes(4, "big"),
+                "DESCRIPTION": "Example NXDN reflector",
+                "TALKGROUP": 65000,
+                "NXDN_ID": 12345,
+                "MASTER_IP": "127.0.0.1",
+                "MASTER_PORT": 41400,
+                "STATS": {
+                    "CONNECTION": "YES",
+                    "CONNECTED": time.time() - 90,
+                    "PINGS_SENT": 6,
+                    "PINGS_ACKD": 0,
+                },
+            },
+        }
+        ctable = {"MASTERS": {}, "PEERS": {}, "OPENBRIDGES": {}}
+        build_hblink_table(config, ctable)
+        peer = ctable["PEERS"]["NXDN-ROOM"]
+        assert peer["MODE"] == "NXDNPEER"
+        assert peer["CALLSIGN"] == "MX0SXC"
+        assert peer["SLOTS"] == "2"
+        assert peer["LOCATION"] == "Example NXDN reflector · TG 65000"
+        assert peer["STATS"]["PINGS_ACKD"] is None
+        assert "m" in peer["STATS"]["CONNECTED"]
+
+        config["NXDN-ROOM"]["STATS"]["PINGS_SENT"] = 7
+        update_hblink_table(config, ctable)
+        assert peer["STATS"]["PINGS_SENT"] == 7
+        assert peer["STATS"]["PINGS_ACKD"] is None
+
+        env = Environment(loader=FileSystemLoader(str(ROOT / "templates")))
+        html = env.get_template("lnksys_table.html").render(_table=ctable, emaster=False)
+        assert "badge-nxdn" in html
+        assert ">NXDN<" in html
+        assert "7 polls" in html
+        assert "Example NXDN reflector · TG 65000" in html
+        assert "NXDNPEER" not in html
+        home = (ROOT / "templates" / "main_table.html").read_text(encoding="utf-8")
+        assert "nxdn-pill" in home
+        css = (ROOT / "html" / "css" / "styles.php").read_text(encoding="utf-8")
+        assert ".badge-nxdn" in css
+        assert "#1a73e8" in css
+    finally:
+        monitor.CONF["GLOBAL"]["HB_INC"] = saved
+
+
 def test_hytera_system_in_masters():
     peer_key = b"\x00\x00\x00\x01"
     config = {
@@ -175,5 +231,6 @@ if __name__ == "__main__":
     test_ysfpeer_in_peers_table()
     test_ysfpeer_connected_none_does_not_crash()
     test_rysen_ysf_report_shows_room_and_polls()
+    test_rysen_nxdn_report_shows_room_and_polls()
     test_hytera_system_in_masters()
     print("OK: RYSEN modes test passed")
