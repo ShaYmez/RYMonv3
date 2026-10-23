@@ -1,6 +1,6 @@
 **RYMonv3 is a "dashboard" for RYSEN MASTER+ & HBlink3 servers by M0VUB.**
 
-**Version 3.1.2**
+**Version 3.1.3**
 
 ***This version has been forked from FDMR-Monitor by OA4DOA 2022***
 ***This version is also credited to HBMonV2 by SP2ONG 2019 - 2022***
@@ -21,6 +21,7 @@ Some of the changes in RYMonv3:
 - Data QSO's now are showed in the dashboard.
 - IPSC repeater peers (`MODE: IPSC`) and Hytera masters (`MODE: HYTERA`) on Linked Systems / Static TG when RYSEN reports them.
 - YSF reflector legs (`MODE: YSFPEER`) on Linked Systems when `HOMEBREW_INC` is enabled.
+- NXDN reflector legs (`MODE: NXDNPEER`) on Linked Systems, in blue, with the room and poll count.
 
 RYMonv2 has been tested on Debian 11, 12 & 13
 

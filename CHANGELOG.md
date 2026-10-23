@@ -2,6 +2,17 @@
 
 All notable changes to RYMonv3 are documented in this file.
 
+## [3.1.3] - 2026-10-23
+
+### Added
+
+- YSF reflector room name and poll count on Linked Systems.
+- NXDN reflector on Linked Systems, in blue, with its room and poll count.
+
+### Changed
+
+- Dashboard footer shows the release version. It had stayed on 3.1.1 after 3.1.2.
+
 ## [3.1.2] - 2026-10-15
 
 ### Fixed
